@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VSEVERA Shop</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+body { font-family: system-ui; margin:0; background:#f7f7f8; }
+.wrap { padding:16px; max-width:640px; margin:0 auto; }
+h2 { text-align:center; margin-bottom:16px; }
+.products { display:grid; gap:12px; }
+.card { background:#fff; border-radius:14px; padding:14px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+.title { font-weight:700; }
+.desc { font-size:14px; color:#555; margin:4px 0; }
+.row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.price { font-weight:700; }
+.btn { background:#0088cc; color:#fff; border:0; padding:8px 12px; border-radius:10px; cursor:pointer; }
+.qty { display:flex; align-items:center; gap:8px; }
+.qty button { width:28px; height:28px; border-radius:8px; border:0; background:#efefef; }
+#cart { position:sticky; bottom:0; background:#fff; padding:12px; box-shadow:0 -6px 18px rgba(0,0,0,.08); display:none; }
+#cart input { padding:6px 8px; border-radius:6px; border:1px solid #ccc; width:120px; margin-right:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h2>🛒 Магазин VSEVERA</h2>
+<div class="products" id="products"></div>
+</div>
+
+<div id="cart">
+<div class="wrap" style="display:flex; flex-direction:column; gap:6px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div>🧺 В корзине: <span id="count">0</span> • Итого: <span id="total">0</span> ₽</div>
+<button class="btn" onclick="checkout()">Оформить</button>
+</div>
+<div style="display:flex; gap:6px;">
+<input type="text" id="promo" placeholder="Промокод">
+<button class="btn" onclick="applyPromo()">Применить</button>
+</div>
+<div>
+<input type="text" id="city" placeholder="Город">
+<input type="text" id="address" placeholder="Адрес доставки">
+</div>
+</div>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+const PRODUCTS = [
+{id:'kit_minerals',title:'Набор минералов',desc:'Камни-самоцветы и кварцевый песок',price:2500},
+{id:'sensory_sand',title:'Сенсорный набор «Песочные миры»',desc:'Кварцевый песок + инструменты',price:1900},
+{id:'family_quest',title:'Семейный квест «Открой камень»',desc:'Игра-квест для всей семьи',price:1500}
+];
+
+let cart = new Map();
+let discount = 0;
+
+function renderProducts(){
+  const box=document.getElementById('products');
+  box.innerHTML='';
+  PRODUCTS.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="title">${p.title}</div>
+      <div class="desc">${p.desc}</div>
+      <div class="row">
+        <div class="price">${p.price} ₽</div>
+        <div class="qty" id="qty_${p.id}">
+          <button onclick="dec('${p.id}')">−</button>
+          <span id="q_${p.id}">${cart.get(p.id)?.qty||0}</span>
+          <button onclick="inc('${p.id}')">+</button>
+        </div>
+      </div>
+    `;
+    box.appendChild(card);
+  });
+}
+
+function inc(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  const cur=cart.get(id)||{...p,qty:0};
+  cur.qty+=1;
+  cart.set(id,cur);
+  updateCart();
+}
+function dec(id){
+  const cur=cart.get(id);
+  if(!cur)return;
+  cur.qty-=1;
+  if(cur.qty<=0) cart.delete(id);
+  else cart.set(id,cur);
+  updateCart();
+}
+
+function updateCart(){
+  PRODUCTS.forEach(p=>{
+    const el=document.getElementById('q_'+p.id);
+    if(el) el.textContent=cart.get(p.id)?.qty||0;
+  });
+  let count=0,total=0;
+  for(const i of cart.values()){
+    count+=i.qty;
+    total+=i.price*i.qty;
+  }
+  if(discount>0) total=Math.round(total*(1-discount/100));
+  document.getElementById('count').textContent=count;
+  document.getElementById('total').textContent=total.toString();
+  document.getElementById('cart').style.display=count>0?'block':'none';
+}
+
+function applyPromo(){
+  const code=document.getElementById('promo').value.trim().toUpperCase();
+  // пример: промокод VSEVERA10 даёт скидку 10%
+  if(code==='VSEVERA10'){ discount=10; alert('Скидка 10% применена!'); }
+  else { discount=0; alert('Неверный промокод'); }
+  updateCart();
+}
+
+function checkout(){
+  const city=document.getElementById('city').value.trim();
+  const address=document.getElementById('address').value.trim();
+  if(!city||!address){ alert('Введите город и адрес доставки'); return; }
+  const order=Array.from(cart.values()).map(i=>({id:i.id,title:i.title,price:i.price,qty:i.qty}));
+  tg.sendData(JSON.stringify({type:'order',items:order,city,address,discount}));
+}
+
+renderProducts();
+updateCart();
+</script>
+</body>
+</html>
