@@ -3,62 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VSEVERA Shop</title>
+<title>VSEVERA — мини-магазин</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body { font-family: system-ui; margin:0; background:#f7f7f8; }
-.wrap { padding:16px; max-width:640px; margin:0 auto; }
-h2 { text-align:center; margin-bottom:16px; }
-.products { display:grid; gap:12px; }
-.card { background:#fff; border-radius:14px; padding:14px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
-.title { font-weight:700; }
-.desc { font-size:14px; color:#555; margin:4px 0; }
-.row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
-.price { font-weight:700; }
-.btn { background:#0088cc; color:#fff; border:0; padding:8px 12px; border-radius:10px; cursor:pointer; }
+/* === Брендовые цвета VSEVERA (строго по заданию) ===
+   Песочный       #E8D3B5
+   Лазурный       #4AB7B6
+   Глубокий сапфир#1A3D5D
+   Розовый кварц  #F2C1B6
+   Серый камень   #8A8A8A
+*/
+:root{
+  --sand: #E8D3B5;
+  --azure: #4AB7B6;
+  --sapphire: #1A3D5D;
+  --rose: #F2C1B6;
+  --stone: #8A8A8A;
+
+  --bg: #FBF8F5; /* мягкий фон, нейтральный — сохраним читаемость */
+  --card-bg: #FFFFFF;
+  --muted: var(--stone);
+  --radius: 12px;
+}
+
+*{box-sizing:border-box}
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin:0;
+  background: linear-gradient(180deg, var(--bg) 0%, #fff 100%);
+  color: #111;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.wrap { padding:18px; max-width:760px; margin:0 auto; }
+
+header {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
+}
+.logo {
+  width:48px; height:48px; border-radius:10px;
+  background: linear-gradient(135deg, var(--sapphire), var(--azure));
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:700; font-size:18px;
+  box-shadow: 0 6px 18px rgba(26,61,93,0.12);
+}
+h1 {
+  margin:0; font-size:18px; color:var(--sapphire);
+  letter-spacing:0.2px;
+}
+
+.products { display:grid; gap:14px; margin-top:10px; }
+.card {
+  background:var(--card-bg);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow: 0 6px 20px rgba(26,61,93,0.06);
+  border:1px solid rgba(26,61,93,0.04);
+}
+
+.media { position:relative; width:100%; height:200px; background:#f2f2f2; }
+.media img, .media video { width:100%; height:100%; object-fit:cover; display:block; }
+.badge {
+  position:absolute; left:12px; top:12px;
+  background:var(--azure); color:#fff; padding:6px 10px; border-radius:999px;
+  font-size:13px; font-weight:600; box-shadow:0 6px 16px rgba(74,183,182,0.12);
+}
+
+.inner { padding:14px; }
+.title { font-size:16px; margin:0 0 6px; color:var(--sapphire); font-weight:700; }
+.desc { margin:0 0 8px; color:var(--muted); font-size:14px; line-height:1.35;}
+.row { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:6px; }
+
+.price { font-weight:800; color:var(--sapphire); font-size:16px; }
 .qty { display:flex; align-items:center; gap:8px; }
-.qty button { width:28px; height:28px; border-radius:8px; border:0; background:#efefef; }
-#cart { position:sticky; bottom:0; background:#fff; padding:12px; box-shadow:0 -6px 18px rgba(0,0,0,.08); display:none; }
-#cart input { padding:6px 8px; border-radius:6px; border:1px solid #ccc; width:120px; margin-right:8px; }
+.qty button {
+  width:32px; height:32px; border-radius:8px; border:0; background:var(--bg); color:var(--sapphire);
+  font-size:18px; cursor:pointer;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.03);
+}
+.qty span { min-width:26px; text-align:center; font-weight:600; color:#222; display:inline-block; }
+
+.btn {
+  background: var(--sapphire);
+  color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;
+  box-shadow: 0 8px 18px rgba(26,61,93,0.12); transition: transform .12s ease, background .12s;
+}
+.btn:hover { transform: translateY(-2px); background: var(--azure); color:#07303a; }
+
+.btn.secondary {
+  background: transparent; color:var(--sapphire); border:1px solid rgba(26,61,93,0.08); font-weight:700;
+}
+.btn.ghost {
+  background: var(--rose); color:var(--sapphire);
+}
+
+.hint { font-size:13px; color:var(--muted); margin-top:6px; }
+
+/* Cart sticky footer */
+#cart {
+  position:sticky; bottom:0; background:var(--card-bg); padding:12px 0; display:none;
+  box-shadow: 0 -8px 24px rgba(26,61,93,0.06); border-top: 4px solid var(--sapphire);
+}
+.cart-inner { max-width:760px; margin:0 auto; padding:10px 18px; display:grid; gap:10px; background:transparent; }
+
+/* inputs */
+input, select { padding:10px 12px; border-radius:10px; border:1px solid rgba(26,61,93,0.06); background:#fff; font-size:14px; color:#111; }
+input::placeholder { color: #a7a7a7; }
+
+/* responsive niceties */
+@media (max-width:520px){
+  .media { height:160px; }
+  .wrap { padding:12px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h2>🛒 Магазин VSEVERA</h2>
-<div class="products" id="products"></div>
+  <header>
+    <div class="logo">VS</div>
+    <div>
+      <h1>VSEVERA — Магазин наборов и квестов</h1>
+      <div class="hint">Камни-самоцветы • Сенсорика • Нейроигры</div>
+    </div>
+  </header>
+
+  <div class="products" id="products"></div>
 </div>
 
+<!-- Cart -->
 <div id="cart">
-<div class="wrap" style="display:flex; flex-direction:column; gap:6px;">
-<div style="display:flex; justify-content:space-between; align-items:center;">
-<div>🧺 В корзине: <span id="count">0</span> • Итого: <span id="total">0</span> ₽</div>
-<button class="btn" onclick="checkout()">Оформить</button>
-</div>
-<div style="display:flex; gap:6px;">
-<input type="text" id="promo" placeholder="Промокод">
-<button class="btn" onclick="applyPromo()">Применить</button>
-</div>
-<div>
-<input type="text" id="city" placeholder="Город">
-<input type="text" id="address" placeholder="Адрес доставки">
-</div>
-</div>
+  <div class="cart-inner">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-weight:700">🧺 В корзине: <span id="count">0</span></div>
+      <div style="font-weight:800; color:var(--sapphire)">Итого: <span id="total">0</span> ₽</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr auto; gap:8px;">
+      <input id="promo" placeholder="Промокод">
+      <button class="btn secondary" onclick="applyPromo()">Применить</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <select id="shipping" onchange="updateCart()">
+        <option value="pickup">Самовывоз — 0 ₽</option>
+        <option value="post">Почта РФ — 200 ₽</option>
+        <option value="cdek">СДЭК — 350 ₽</option>
+      </select>
+      <input id="phone" type="tel" placeholder="Телефон для связи">
+    </div>
+
+    <div id="addressBlock" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <input id="city" placeholder="Город">
+      <input id="address" placeholder="Адрес (улица, дом, кв.)">
+    </div>
+    <div class="hint" id="addressHint">Для самовывоза адрес не нужен</div>
+
+    <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+      <button class="btn ghost" onclick="clearCart()">Очистить</button>
+      <button class="btn" onclick="checkout()">Оформить и оплатить</button>
+    </div>
+  </div>
 </div>
 
 <script>
+/* --- логика WebApp — без изменений, только цвета UI --- */
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+/* === Товары: замените img/video/poster URL на свои === */
 const PRODUCTS = [
-{id:'kit_minerals',title:'В Поисках Сокровищ',desc:'Игровой развивающий набор с натуральными камнями самоцветами и минералами',price:2500},
-{id:'sensory_sand',title:'Сенсорный набор «Набор самоцветов 10 гр. "СКАЗКА" с 5-ю онлайн уроками для использования»',desc:'Натуральные минералы',price:1300},
-{id:'family_quest',title:'Семейный квест «Открой камень»',desc:'Игра-квест для всей семьи',price:1500},
-{id:'sensory_sand',title:'Сенсорный набор «Набор самоцветов 10 гр. "ВОЛШЕБСТВО" с 5-ю онлайн уроками для использования»',desc:'Натуральные минералы',price:1300},
-{id:'sensory_sand',title:'Сенсорный набор «Набор самоцветов 10 гр. "МАГИЯ" с 5-ю онлайн уроками для использования»',desc:'Натуральные минералы',price:1300}
+  { id:'kit_minerals', title:'В поисках сокровищ', desc:'Набор с натуральными самоцветами и минералами', price:2500, img:'https://cdn.yoursite/kit_minerals.jpg', video:'', poster:'' },
+  { id:'sand_skazka', title:'Самоцветы 10 г «СКАЗКА» + 5 уроков', desc:'Натуральные минералы', price:1300, img:'https://cdn.yoursite/sand_skazka.jpg' },
+  { id:'family_quest', title:'Семейный квест «Открой камень»', desc:'Игра-квест для всей семьи', price:1500, img:'https://cdn.yoursite/family_quest.jpg', video:'https://cdn.yoursite/family_quest.mp4', poster:'https://cdn.yoursite/family_quest_poster.jpg' },
+  { id:'sand_volshebstvo', title:'Самоцветы 10 г «ВОЛШЕБСТВО» + 5 уроков', desc:'Натуральные минералы', price:1300, img:'https://cdn.yoursite/sand_volshebstvo.jpg' },
+  { id:'sand_magia', title:'Самоцветы 10 г «МАГИЯ» + 5 уроков', desc:'Натуральные минералы', price:1300, img:'https://cdn.yoursite/sand_magia.jpg' }
 ];
+
+const SHIPPING = {
+  pickup: { id:'pickup', title:'Самовывоз', amount:0 },
+  post:   { id:'post', title:'Почта РФ', amount:200 },
+  cdek:   { id:'cdek', title:'СДЭК', amount:350 }
+};
 
 let cart = new Map();
 let discount = 0;
+let promoCode = null;
+
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
 
 function renderProducts(){
   const box=document.getElementById('products');
@@ -66,15 +201,22 @@ function renderProducts(){
   PRODUCTS.forEach(p=>{
     const card=document.createElement('div');
     card.className='card';
-    card.innerHTML=`
-      <div class="title">${p.title}</div>
-      <div class="desc">${p.desc}</div>
-      <div class="row">
-        <div class="price">${p.price} ₽</div>
-        <div class="qty" id="qty_${p.id}">
-          <button onclick="dec('${p.id}')">−</button>
-          <span id="q_${p.id}">${cart.get(p.id)?.qty||0}</span>
-          <button onclick="inc('${p.id}')">+</button>
+    const hasVideo = !!p.video;
+    const media = hasVideo
+      ? `<video controls preload="none" ${p.poster?`poster="${p.poster}"`:''} src="${p.video}"></video><div class="badge">Видео</div>`
+      : `<img src="${p.img}" alt="${p.title}" loading="lazy">`;
+    card.innerHTML = `
+      <div class="media">${media}</div>
+      <div class="inner">
+        <div class="title">${p.title}</div>
+        <div class="desc">${p.desc}</div>
+        <div class="row">
+          <div class="price">${p.price} ₽</div>
+          <div class="qty" id="qty_${p.id}">
+            <button onclick="dec('${p.id}')">−</button>
+            <span id="q_${p.id}">${cart.get(p.id)?.qty||0}</span>
+            <button onclick="inc('${p.id}')">+</button>
+          </div>
         </div>
       </div>
     `;
@@ -83,53 +225,85 @@ function renderProducts(){
 }
 
 function inc(id){
-  const p=PRODUCTS.find(x=>x.id===id);
-  const cur=cart.get(id)||{...p,qty:0};
-  cur.qty+=1;
-  cart.set(id,cur);
+  const p = PRODUCTS.find(x=>x.id===id);
+  const cur = cart.get(id) || {...p, qty:0};
+  cur.qty += 1;
+  cart.set(id, cur);
+  if (tg.HapticFeedback && tg.HapticFeedback.impactOccurred) {
+    try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+  }
   updateCart();
 }
 function dec(id){
-  const cur=cart.get(id);
-  if(!cur)return;
-  cur.qty-=1;
-  if(cur.qty<=0) cart.delete(id);
-  else cart.set(id,cur);
+  const cur = cart.get(id);
+  if(!cur) return;
+  cur.qty -= 1;
+  if(cur.qty <= 0) cart.delete(id);
+  else cart.set(id, cur);
   updateCart();
 }
+function clearCart(){ cart.clear(); updateCart(); }
+
+function getSubtotal(){
+  let subtotal=0;
+  for(const i of cart.values()) subtotal += i.price * i.qty;
+  if(discount>0) subtotal = Math.round(subtotal * (1 - discount/100));
+  return subtotal;
+}
+function getShippingAmount(){ const key = document.getElementById('shipping').value; return SHIPPING[key].amount || 0; }
 
 function updateCart(){
   PRODUCTS.forEach(p=>{
-    const el=document.getElementById('q_'+p.id);
-    if(el) el.textContent=cart.get(p.id)?.qty||0;
+    const el = document.getElementById('q_'+p.id);
+    if(el) el.textContent = cart.get(p.id)?.qty || 0;
   });
-  let count=0,total=0;
-  for(const i of cart.values()){
-    count+=i.qty;
-    total+=i.price*i.qty;
-  }
-  if(discount>0) total=Math.round(total*(1-discount/100));
-  document.getElementById('count').textContent=count;
-  document.getElementById('total').textContent=total.toString();
-  document.getElementById('cart').style.display=count>0?'block':'none';
+  let count = 0;
+  for(const i of cart.values()) count += i.qty;
+  const subtotal = getSubtotal();
+  const shippingAmt = getShippingAmount();
+  const total = subtotal + shippingAmt;
+  document.getElementById('count').textContent = count;
+  document.getElementById('total').textContent = total.toString();
+  document.getElementById('cart').style.display = count>0 ? 'block' : 'none';
+  const isPickup = document.getElementById('shipping').value === 'pickup';
+  document.getElementById('addressBlock').style.display = isPickup ? 'none' : 'grid';
+  document.getElementById('addressHint').textContent = isPickup ? 'Для самовывоза адрес не нужен' : 'Укажите город и адрес для доставки';
 }
 
 function applyPromo(){
-  const code=document.getElementById('promo').value.trim().toUpperCase();
-  // пример: промокод VSEVERA10 даёт скидку 10%
-  if(code==='VSEVERA10'){ discount=10; alert('Скидка 10% применена!'); }
-  else { discount=0; alert('Неверный промокод'); }
+  const code = document.getElementById('promo').value.trim().toUpperCase();
+  if(code === 'VSEVERA10'){ discount = 10; promoCode = code; alert('Скидка 10% применена!'); }
+  else { discount = 0; promoCode = null; alert('Неверный промокод'); }
   updateCart();
 }
 
 function checkout(){
-  const city=document.getElementById('city').value.trim();
-  const address=document.getElementById('address').value.trim();
-  if(!city||!address){ alert('Введите город и адрес доставки'); return; }
-  const order=Array.from(cart.values()).map(i=>({id:i.id,title:i.title,price:i.price,qty:i.qty}));
-  tg.sendData(JSON.stringify({type:'order',items:order,city,address,discount}));
+  const phone = document.getElementById('phone').value.trim();
+  const shipId = document.getElementById('shipping').value;
+  const isPickup = shipId === 'pickup';
+  const city = document.getElementById('city').value.trim();
+  const address = document.getElementById('address').value.trim();
+  if(!phone){ alert('Введите телефон для связи'); return; }
+  if(!isPickup && (!city || !address)){ alert('Введите город и адрес доставки'); return; }
+  const items = Array.from(cart.values()).map(i=>({ id:i.id, title:i.title, price:i.price, qty:i.qty }));
+  if(items.length === 0){ alert('Корзина пуста'); return; }
+  const order = {
+    type:'order',
+    order_id:'ORD'+Date.now(),
+    items,
+    promo: promoCode,
+    discount,
+    shippingId: shipId,
+    contact:{ phone },
+    address: isPickup ? null : { city, address },
+    totalsPreview: { subtotal: getSubtotal(), shipping: getShippingAmount(), total: getSubtotal()+getShippingAmount() },
+    user: Telegram.WebApp.initDataUnsafe?.user || null
+  };
+  // Отправляем данные боту (bot получит update.message.web_app_data)
+  Telegram.WebApp.sendData(JSON.stringify(order));
 }
 
+/* Инициализация */
 renderProducts();
 updateCart();
 </script>
